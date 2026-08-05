@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="gu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bhavnagar Advocate Directory – 2026</title>
+<style>
+body{font-family:Arial;margin:0;background:#f4f6f8;color:#222}header{background:#17365d;color:#fff;padding:24px;text-align:center}
+main{max-width:900px;margin:24px auto;padding:0 16px}.search{display:flex;gap:8px}input{flex:1;padding:14px;border:1px solid #ccc;border-radius:8px;font-size:16px}button{padding:14px;border:0;border-radius:8px;background:#17365d;color:white}
+.card{background:#fff;border-radius:12px;padding:18px;margin:12px 0;box-shadow:0 2px 8px #0001}.name{font-size:20px;font-weight:bold}.row{margin:8px 0}.label{font-weight:bold}
+.actions a{display:inline-block;margin:8px 8px 0 0;padding:9px 12px;background:#eee;color:#111;text-decoration:none;border-radius:7px}.note{text-align:center;color:#666;margin:20px}
+</style></head><body>
+<header><h1>⚖️ Bhavnagar Advocate Directory – 2026</h1><p>Search by Name, Enrollment No., Court or Practice Area</p></header>
+<main><div class="search"><input id="q" placeholder="Advocate Name / Enrollment No. / Court / Practice Area" oninput="search()"><button onclick="search()">Search</button></div>
+<div id="status" class="note">Loading directory...</div><div id="results"></div></main>
+<script>
+const API_URL="PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE"; let data=[];
+async function load(){if(API_URL.startsWith("PASTE_")){status.textContent="Google Apps Script URL અહીં મૂકવો જરૂરી છે.";return}
+try{let r=await fetch(API_URL);data=await r.json();status.textContent=data.length+" Advocate records loaded."}catch(e){status.textContent="Directory load failed."}}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function search(){let q=document.getElementById("q").value.trim().toLowerCase();let out=data.filter(x=>!q||Object.values(x).join(" ").toLowerCase().includes(q));
+status.textContent=out.length+" result(s)";results.innerHTML=out.map(x=>{let p=x["Mobile"]||x["Phone"]||x["Phone Number"]||"",a=x["Office Address"]||x["Address"]||"",n=x["Advocate Name"]||x["Name"]||"";
+return `<div class="card"><div class="name">${esc(n)}</div><div class="row"><span class="label">Enrollment No.:</span> ${esc(x["Enrollment No."]||x["Enrollment Number"]||"")}</div>
+<div class="row"><span class="label">Mobile:</span> ${esc(p)}</div><div class="row"><span class="label">Office Address:</span> ${esc(a)}</div>
+<div class="row"><span class="label">Court:</span> ${esc(x["Primary Court"]||x["Court"]||"")}</div><div class="row"><span class="label">Practice:</span> ${esc(x["Area of Practice"]||x["Area of Law Practice"]||"")}</div>
+<div class="actions">${p?`<a href="tel:${esc(p)}">📞 Call</a>`:""}${p?`<a href="https://wa.me/91${String(p).replace(/\D/g,'').slice(-10)}" target="_blank">💬 WhatsApp</a>`:""}</div></div>`}).join("")} load();
+</script></body></html>
