@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bhavnagar Advocate Directory – 2026</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f4f6f8;color:#222}
+header{background:#17365d;color:#fff;padding:28px 16px;text-align:center}
+main{max-width:900px;margin:24px auto;padding:0 16px}
+.search{display:flex;gap:8px;margin-bottom:18px}
+input{flex:1;padding:14px;border:1px solid #ccc;border-radius:8px;font-size:16px}
+button{padding:14px 18px;border:0;border-radius:8px;background:#17365d;color:#fff;cursor:pointer}
+.card{background:#fff;border-radius:12px;padding:18px;margin:12px 0;box-shadow:0 2px 8px #0001}
+.name{font-size:21px;font-weight:bold;margin-bottom:10px}
+.row{margin:7px 0}.label{font-weight:bold}
+.actions a{display:inline-block;margin:10px 8px 0 0;padding:9px 13px;border-radius:7px;text-decoration:none;background:#eee;color:#111}
+.note{text-align:center;color:#666;margin:18px}
+</style>
+</head>
+<body>
+<header>
+<h1>⚖️ Bhavnagar Advocate Directory – 2026</h1>
+<p>Advocateનું નામ, Enrollment No., Court અથવા Practice Areaથી શોધો</p>
+</header>
+<main>
+<div class="search">
+<input id="q" placeholder="Advocate Name / Enrollment No. / Court / Practice Area" oninput="searchRecords()">
+<button onclick="searchRecords()">Search</button>
+</div>
+<div id="status" class="note">Directory loading...</div>
+<div id="results"></div>
+</main>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycby-VTbpiGqHHT3Tmj_dDiCYqOm9ZnU3Z6K09fiO4MR22hqEq8X9lhZDqjLgFxZFsd18TQ/exec";
+let data = [];
+
+async function loadDirectory(){
+  try{
+    const response = await fetch(API_URL);
+    if(!response.ok) throw new Error("Network error");
+    data = await response.json();
+    document.getElementById("status").textContent =
+      "Directoryમાં " + data.length + " records મળ્યા.";
+  }catch(error){
+    document.getElementById("status").textContent =
+      "Directory load થઈ નથી. Web App deployment અને Sheet access ચેક કરો.";
+  }
+}
+
+function esc(value){
+  return String(value ?? "").replace(/[&<>"']/g, function(m){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m];
+  });
+}
+
+function findValue(x, names){
+  for(const n of names){
+    if(x[n] !== undefined && x[n] !== "") return x[n];
+  }
+  return "";
+}
+
+function searchRecords(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+
+  const results = data.filter(x =>
+    !q || Object.values(x).join(" ").toLowerCase().includes(q)
+  );
+
+  document.getElementById("status").textContent =
+    results.length + " result(s)";
+
+  document.getElementById("results").innerHTML = results.map(x => {
+    const name = findValue(x,["Advocate Name","Name","Advocate"]);
+    const phone = findValue(x,["Mobile","Phone","Phone Number"]);
+    const address = findValue(x,["Office Address","Address"]);
+    const court = findValue(x,["Primary Court","Court"]);
+    const practice = findValue(x,["Area of Practice","Area of Law Practice","Practice Area"]);
+    const enrollment = findValue(x,["Enrollment No.","Enrollment Number","Enrollment Number "]);
+    const officePhone = findValue(x,["Office Telephone","Office Phone","Office Phone Number"]);
+
+    const digits = String(phone).replace(/\D/g,"").slice(-10);
+
+    return `<div class="card">
+      <div class="name">⚖️ ${esc(name)}</div>
+      ${enrollment ? `<div class="row"><span class="label">Enrollment No.:</span> ${esc(enrollment)}</div>` : ""}
+      ${phone ? `<div class="row"><span class="label">Mobile:</span> ${esc(phone)}</div>` : ""}
+      ${officePhone ? `<div class="row"><span class="label">Office Phone:</span> ${esc(officePhone)}</div>` : ""}
+      ${address ? `<div class="row"><span class="label">Office Address:</span> ${esc(address)}</div>` : ""}
+      ${court ? `<div class="row"><span class="label">Court:</span> ${esc(court)}</div>` : ""}
+      ${practice ? `<div class="row"><span class="label">Practice:</span> ${esc(practice)}</div>` : ""}
+      <div class="actions">
+        ${phone ? `<a href="tel:${esc(phone)}">📞 Call</a>` : ""}
+        ${digits ? `<a href="https://wa.me/91${digits}" target="_blank">💬 WhatsApp</a>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+loadDirectory();
+</script>
+</body>
+</html>
