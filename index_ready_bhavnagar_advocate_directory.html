@@ -3,6 +3,487 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Bhavnagar Advocate Directory – 2026</title>
+
+<style>
+body{
+  font-family:Arial,sans-serif;
+  margin:0;
+  background:#f4f6f8;
+  color:#222
+}
+
+header{
+  background:#17365d;
+  color:white;
+  padding:24px 16px;
+  text-align:center
+}
+
+header h1{
+  margin:0 0 8px;
+  font-size:26px
+}
+
+header p{
+  margin:0;
+  font-size:14px
+}
+
+main{
+  max-width:900px;
+  margin:24px auto;
+  padding:0 16px
+}
+
+.search{
+  display:flex;
+  gap:8px;
+  margin-bottom:15px
+}
+
+input{
+  flex:1;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:16px;
+  box-sizing:border-box
+}
+
+button{
+  padding:14px 20px;
+  border:0;
+  border-radius:8px;
+  background:#17365d;
+  color:white;
+  cursor:pointer
+}
+
+button:hover{
+  background:#0d2948
+}
+
+.card{
+  background:white;
+  border-radius:12px;
+  padding:18px;
+  margin:12px 0;
+  box-shadow:0 2px 8px #0001
+}
+
+.name{
+  font-size:20px;
+  font-weight:bold;
+  color:#17365d;
+  margin-bottom:12px
+}
+
+.row{
+  margin:8px 0;
+  line-height:1.5
+}
+
+.label{
+  font-weight:bold
+}
+
+.actions{
+  margin-top:12px
+}
+
+.actions a{
+  display:inline-block;
+  margin:5px 8px 5px 0;
+  padding:9px 13px;
+  background:#eee;
+  color:#111;
+  text-decoration:none;
+  border-radius:7px
+}
+
+.call{
+  background:#dff3e4 !important;
+  color:#146c2e !important
+}
+
+.whatsapp{
+  background:#dcf8e5 !important;
+  color:#128c45 !important
+}
+
+.note{
+  text-align:center;
+  color:#666;
+  margin:20px 0
+}
+
+.error{
+  color:#b00020;
+  background:#ffeaea;
+  padding:12px;
+  border-radius:8px
+}
+
+.noresult{
+  text-align:center;
+  padding:30px;
+  color:#777
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>⚖️ Bhavnagar Advocate Directory – 2026</h1>
+  <p>Search by Name, Enrollment No., Phone, Address or Practice Area</p>
+</header>
+
+<main>
+
+  <div class="search">
+    <input
+      id="q"
+      type="text"
+      placeholder="Advocate Name / Enrollment No. / Phone / Practice Area"
+      oninput="searchDirectory()"
+    >
+    <button onclick="searchDirectory()">Search</button>
+  </div>
+
+  <div id="status" class="note">
+    Loading directory...
+  </div>
+
+  <div id="results"></div>
+
+</main>
+
+<script>
+
+/* =====================================================
+   IMPORTANT:
+   અહીં તમારો Google Apps Script Web App /exec URL મૂકો
+   ===================================================== */
+
+const API_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+let data = [];
+
+
+/* =========================
+   LOAD DIRECTORY
+   ========================= */
+
+async function loadDirectory(){
+
+  const status = document.getElementById("status");
+
+  if(API_URL.startsWith("PASTE_")){
+    status.innerHTML =
+      '<div class="error">Google Apps Script Web App URL મૂકવો જરૂરી છે.</div>';
+    return;
+  }
+
+  status.textContent = "Loading directory...";
+
+  try{
+
+    const response = await fetch(API_URL, {
+      method:"GET",
+      cache:"no-store"
+    });
+
+    if(!response.ok){
+      throw new Error("HTTP Error: " + response.status);
+    }
+
+    const json = await response.json();
+
+    if(!Array.isArray(json)){
+      throw new Error("Invalid JSON data");
+    }
+
+    data = json;
+
+    status.textContent =
+      data.length + " Advocate records loaded.";
+
+    displayResults(data);
+
+  }catch(error){
+
+    console.error(error);
+
+    status.innerHTML =
+      '<div class="error">' +
+      'Directory load failed.<br>' +
+      'Please check Google Apps Script Web App URL and deployment settings.' +
+      '</div>';
+
+  }
+
+}
+
+
+/* =========================
+   SEARCH
+   ========================= */
+
+function searchDirectory(){
+
+  const q =
+    document.getElementById("q")
+    .value
+    .trim()
+    .toLowerCase();
+
+  if(!q){
+
+    displayResults(data);
+
+    document.getElementById("status").textContent =
+      data.length + " Advocate records loaded.";
+
+    return;
+  }
+
+
+  const results = data.filter(function(x){
+
+    const searchable = [
+
+      x["Name"],
+      x["Email"],
+      x["OFFICE ADDRESS"],
+      x["Phone number"],
+      x["OFFICE PHONE NUMBER "],
+      x["Primary Area of Law Practice"],
+      x["Years of Legal Practice"],
+      x["ENROLLMENT NUMBER "],
+      x["RESI.ADDRESS"]
+
+    ].join(" ").toLowerCase();
+
+    return searchable.includes(q);
+
+  });
+
+
+  document.getElementById("status").textContent =
+    results.length + " result(s) found.";
+
+  displayResults(results);
+
+}
+
+
+/* =========================
+   DISPLAY RESULTS
+   ========================= */
+
+function displayResults(records){
+
+  const results =
+    document.getElementById("results");
+
+  if(!records.length){
+
+    results.innerHTML =
+      '<div class="noresult">' +
+      '🔍 No Advocate found.' +
+      '</div>';
+
+    return;
+  }
+
+
+  results.innerHTML = records.map(function(x){
+
+    const name =
+      x["Name"] || "";
+
+    const mobile =
+      x["Phone number"] || "";
+
+    const officePhone =
+      x["OFFICE PHONE NUMBER "] || "";
+
+    const officeAddress =
+      x["OFFICE ADDRESS"] || "";
+
+    const residence =
+      x["RESI.ADDRESS"] || "";
+
+    const enrollment =
+      x["ENROLLMENT NUMBER "] || "";
+
+    const practice =
+      x["Primary Area of Law Practice"] || "";
+
+    const experience =
+      x["Years of Legal Practice"] || "";
+
+    const email =
+      x["Email"] || "";
+
+
+    const cleanMobile =
+      String(mobile).replace(/\D/g,"").slice(-10);
+
+    const cleanOfficePhone =
+      String(officePhone).replace(/\D/g,"").slice(-10);
+
+
+    return `
+
+      <div class="card">
+
+        <div class="name">
+          ⚖️ ${esc(name)}
+        </div>
+
+        <div class="row">
+          <span class="label">Enrollment No.:</span>
+          ${esc(enrollment)}
+        </div>
+
+        <div class="row">
+          <span class="label">Mobile:</span>
+          ${esc(mobile)}
+        </div>
+
+        <div class="row">
+          <span class="label">Office Phone:</span>
+          ${esc(officePhone)}
+        </div>
+
+        <div class="row">
+          <span class="label">Office Address:</span>
+          ${esc(officeAddress)}
+        </div>
+
+        <div class="row">
+          <span class="label">Practice Area:</span>
+          ${esc(practice)}
+        </div>
+
+        <div class="row">
+          <span class="label">Experience:</span>
+          ${esc(experience)}
+        </div>
+
+        ${
+          residence
+          ?
+          `<div class="row">
+            <span class="label">Residence:</span>
+            ${esc(residence)}
+          </div>`
+          :
+          ""
+        }
+
+        ${
+          email
+          ?
+          `<div class="row">
+            <span class="label">Email:</span>
+            ${esc(email)}
+          </div>`
+          :
+          ""
+        }
+
+
+        <div class="actions">
+
+          ${
+            cleanMobile
+            ?
+            `<a class="call"
+               href="tel:${cleanMobile}">
+               📞 Call
+             </a>`
+            :
+            ""
+          }
+
+
+          ${
+            cleanMobile
+            ?
+            `<a class="whatsapp"
+               href="https://wa.me/91${cleanMobile}"
+               target="_blank">
+               💬 WhatsApp
+             </a>`
+            :
+            ""
+          }
+
+
+          ${
+            cleanOfficePhone && cleanOfficePhone !== cleanMobile
+            ?
+            `<a class="call"
+               href="tel:${cleanOfficePhone}">
+               ☎️ Office Call
+             </a>`
+            :
+            ""
+          }
+
+        </div>
+
+      </div>
+
+    `;
+
+  }).join("");
+
+}
+
+
+/* =========================
+   HTML ESCAPE
+   ========================= */
+
+function esc(s){
+
+  return String(s ?? "").replace(
+    /[&<>"']/g,
+    function(m){
+
+      return {
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+
+      }[m];
+
+    }
+  );
+
+}
+
+
+/* START */
+
+loadDirectory();
+
+</script>
+
+</body>
+</html><!doctype html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bhavnagar Advocate Directory – 2026</title>
 <style>
 body{font-family:Arial,sans-serif;margin:0;background:#f4f6f8;color:#222}
